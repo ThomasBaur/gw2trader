@@ -12,8 +12,26 @@ import au.com.bytecode.opencsv.CSVParser;
 
 public class Gw2Trader {
 
-	private void doIt() {
+	public void doIt() {
 		// Gw2Api gw2Api = new Gw2Api();
+		List<Item> items = retrieveItems(10000, 10000, 1);
+		System.out
+				.println("id, name, gw2-spidy, max. kaufgebot, min. verkaufsangebot, gewinn");
+
+		for (Item item : items) {
+			System.out.print(item.getId() + ", " + item.getName() + ", ");
+			System.out.print("http://www.gw2spidy.com/item/" + item.getId()
+					+ ", ");
+			// JSONObject itemDetails = (JSONObject) gw2Api.getItemDetails(
+			// item.getId(), "de");
+			// System.out.print(itemDetails.get("name") + ", ");
+			System.out.println(item.getMaxOfferUnitPrice() + ", "
+					+ item.getMinSaleUnitPrice() + ", " + item.getMargin());
+		}
+
+	}
+
+	public List<Item> retrieveItems(int minOffers, int minSales, int minMargin) {
 		List<Item> items = new ArrayList<>();
 		CSVParser parser = new CSVParser();
 		try {
@@ -30,9 +48,9 @@ public class Gw2Trader {
 							Integer.parseInt(strings[9]),
 							Integer.parseInt(strings[10]),
 							Integer.parseInt(strings[11]));
-					if (item.getOfferAvailability() > 10000
-							&& item.getSaleAvailability() > 10000
-							&& item.getMargin() > 1) {
+					if (item.getOfferAvailability() > minOffers
+							&& item.getSaleAvailability() > minSales
+							&& item.getMargin() > minMargin) {
 						items.add(item);
 						System.out.print('.');
 					}
@@ -42,8 +60,6 @@ public class Gw2Trader {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out
-				.println("id, name, gw2-spidy, max. kaufgebot, min. verkaufsangebot, gewinn");
 		Collections.sort(items, new Comparator<Item>() {
 			@Override
 			public int compare(Item o1, Item o2) {
@@ -58,18 +74,7 @@ public class Gw2Trader {
 				}
 			}
 		});
-
-		for (Item item : items) {
-			System.out.print(item.getId() + ", " + item.getName() + ", ");
-			System.out.print("http://www.gw2spidy.com/item/" + item.getId()
-					+ ", ");
-			// JSONObject itemDetails = (JSONObject) gw2Api.getItemDetails(
-			// item.getId(), "de");
-			// System.out.print(itemDetails.get("name") + ", ");
-			System.out.println(item.getMaxOfferUnitPrice() + ", "
-					+ item.getMinSaleUnitPrice() + ", " + item.getMargin());
-		}
-
+		return items;
 	}
 
 	public static void main(String[] args) {
