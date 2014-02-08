@@ -10,7 +10,7 @@ project.ext {
     BC_VERSION = '1.48'
     BC_JDK = 'jdk15on'
 
-    productVendor = 'Atos Worldline GmbH'
+    productVendor = 'Thomas Baur'
 
     sourceCompatibility = '1.7'
     targetCompatibility = '1.7'
@@ -40,10 +40,7 @@ dependencies {
 //        exclude (group: 'xerces', module: 'xercesImpl')
 //        exclude (group: 'xerces', module: 'xmlParserAPIs')
 //   }
-    
-//    compile "org.bouncycastle:bcprov-${BC_JDK}:${BC_VERSION}",
-//    "org.bouncycastle:bcprov-ext-${BC_JDK}:${BC_VERSION}", 
-//    "org.bouncycastle:bcmail-${BC_JDK}:${BC_VERSION}"
+
     
 //    testCompile (group: 'org.mockito', name: 'mockito-all', version: '1.9.0')
 }

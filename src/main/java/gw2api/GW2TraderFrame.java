@@ -40,6 +40,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 
 import au.com.bytecode.opencsv.CSVParser;
+import javax.swing.DefaultComboBoxModel;
 
 public class GW2TraderFrame extends JFrame {
 
@@ -162,6 +163,7 @@ public class GW2TraderFrame extends JFrame {
 		pnlSettings.add(lblLbllanguages, gbc_lblLbllanguages);
 
 		JComboBox<String> cmbLanguages = new JComboBox<>();
+		cmbLanguages.setModel(new DefaultComboBoxModel<String>(new String[] {"de", "en", "fr"}));
 		GridBagConstraints gbc_cmbLanguages = new GridBagConstraints();
 		gbc_cmbLanguages.insets = new Insets(3, 3, 3, 3);
 		gbc_cmbLanguages.fill = GridBagConstraints.HORIZONTAL;
