@@ -2,7 +2,7 @@ package gw2api;
 
 public class Item {
 	private final String id;
-	private final String name;
+	private String name;
 	private final int maxOfferUnitPrice;
 	private final int minSaleUnitPrice;
 	private final int offerAvailability;
@@ -21,6 +21,10 @@ public class Item {
 
 	public String getId() {
 		return id;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getName() {

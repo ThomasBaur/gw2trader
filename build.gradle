@@ -1,15 +1,10 @@
 // vim: set ts=4 sw=4 ft=groovy et ai:
 apply plugin: 'java'
-apply plugin: 'groovy'
 apply plugin: 'eclipse'
 apply plugin: 'application'
 
 mainClassName= 'test.ParseCsvData'
 project.ext {
-    SPRING_VERSION = '3.1.2.RELEASE'
-    BC_VERSION = '1.48'
-    BC_JDK = 'jdk15on'
-
     productVendor = 'Thomas Baur'
 
     sourceCompatibility = '1.7'
@@ -31,9 +26,7 @@ dependencies {
     compile (group: 'commons-codec', name: 'commons-codec', version: '1.4')
     compile (group: 'commons-io', name: 'commons-io', version: '2.4')
     compile (group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1')
-    compile (group: 'com.xlson.groovycsv', name: 'groovycsv', version: '1.0')
 	compile (group: 'com.google.guava', name: 'guava', version: '15.0')
-	compile 'org.codehaus.groovy:groovy-all:2.0.7'
     
     testCompile (group: 'junit', name: 'junit', version: '4.10')
 //    testCompile (group: 'junit-addons', name: 'junit-addons', version: '1.4') {

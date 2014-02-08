@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -39,8 +40,9 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 
+import org.json.simple.JSONObject;
+
 import au.com.bytecode.opencsv.CSVParser;
-import javax.swing.DefaultComboBoxModel;
 
 public class GW2TraderFrame extends JFrame {
 
@@ -48,7 +50,9 @@ public class GW2TraderFrame extends JFrame {
 	private final JTable tblData;
 	private final TableColumnAdjuster tableColumnAdjuster;
 	private final JButton btnFetch;
+	private final JButton btnGetTranslations;
 	private final JLabel lblStatus;
+	private final JComboBox<String> cmbLanguages;
 
 	/**
 	 * Launch the application.
@@ -146,7 +150,13 @@ public class GW2TraderFrame extends JFrame {
 		gbc_btnFetch.gridy = 0;
 		pnlSettings.add(btnFetch, gbc_btnFetch);
 
-		JButton btnGetTranslations = new JButton("Get translations (slow)");
+		btnGetTranslations = new JButton("Get translations (slow)");
+		btnGetTranslations.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				btnGetTranslations.setEnabled(false);
+				new ItemTranslator().start();
+			}
+		});
 		GridBagConstraints gbc_btnGetTranslations = new GridBagConstraints();
 		gbc_btnGetTranslations.insets = new Insets(3, 3, 5, 3);
 		gbc_btnGetTranslations.fill = GridBagConstraints.HORIZONTAL;
@@ -162,24 +172,25 @@ public class GW2TraderFrame extends JFrame {
 		gbc_lblLbllanguages.gridy = 2;
 		pnlSettings.add(lblLbllanguages, gbc_lblLbllanguages);
 
-		JComboBox<String> cmbLanguages = new JComboBox<>();
-		cmbLanguages.setModel(new DefaultComboBoxModel<String>(new String[] {"de", "en", "fr"}));
+		cmbLanguages = new JComboBox<>();
+		cmbLanguages.setModel(new DefaultComboBoxModel<String>(new String[] {
+				"de", "fr" }));
 		GridBagConstraints gbc_cmbLanguages = new GridBagConstraints();
 		gbc_cmbLanguages.insets = new Insets(3, 3, 3, 3);
 		gbc_cmbLanguages.fill = GridBagConstraints.HORIZONTAL;
 		gbc_cmbLanguages.gridx = 0;
 		gbc_cmbLanguages.gridy = 3;
 		pnlSettings.add(cmbLanguages, gbc_cmbLanguages);
-		
+
 		JPanel pnlStatus = new JPanel();
 		contentPane.add(pnlStatus, BorderLayout.SOUTH);
 		GridBagLayout gbl_pnlStatus = new GridBagLayout();
-		gbl_pnlStatus.columnWidths = new int[]{189, 46, 0};
-		gbl_pnlStatus.rowHeights = new int[]{14, 0};
-		gbl_pnlStatus.columnWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
-		gbl_pnlStatus.rowWeights = new double[]{0.0, Double.MIN_VALUE};
+		gbl_pnlStatus.columnWidths = new int[] { 189, 46, 0 };
+		gbl_pnlStatus.rowHeights = new int[] { 14, 0 };
+		gbl_pnlStatus.columnWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
+		gbl_pnlStatus.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
 		pnlStatus.setLayout(gbl_pnlStatus);
-		
+
 		lblStatus = new JLabel("");
 		GridBagConstraints gbc_lblStatus = new GridBagConstraints();
 		gbc_lblStatus.weightx = 1.0;
@@ -226,7 +237,9 @@ public class GW2TraderFrame extends JFrame {
 							&& item.getMargin() > minMargin) {
 						items.add(item);
 						used++;
-						lblStatus.setText("Loaded " + fetched + " items, filter matched by " + used + " items");
+						lblStatus.setText("Loaded " + fetched
+								+ " items, filter matched by " + used
+								+ " items");
 					}
 				}
 			}
@@ -250,6 +263,26 @@ public class GW2TraderFrame extends JFrame {
 		return items;
 	}
 
+	private class ItemTranslator extends Thread {
+		@Override
+		public void run() {
+			TableModel model = tblData.getModel();
+			if (model != null && model instanceof ItemModel) {
+				Gw2Api gw2Api = new Gw2Api();
+
+				List<Item> items = ((ItemModel) model).getItems();
+				for (Item item : items) {
+					JSONObject itemDetails = (JSONObject) gw2Api
+							.getItemDetails(item.getId(),
+									(String) cmbLanguages.getSelectedItem());
+					item.setName(itemDetails.get("name").toString());
+					tblData.repaint();
+				}
+			}
+			btnGetTranslations.setEnabled(true);
+		}
+	}
+
 	private class ItemFetcher extends Thread {
 		@Override
 		public void run() {
@@ -261,27 +294,29 @@ public class GW2TraderFrame extends JFrame {
 					tblData.setModel(model);
 					tableColumnAdjuster.adjustColumns();
 					tblData.getColumnModel().getColumn(7)
-					.setCellRenderer(new DefaultTableCellRenderer() {
-						@Override
-						public Component getTableCellRendererComponent(
-								JTable table, Object value, boolean isSelected,
-								boolean hasFocus, int row, int column) {
-							Component tableCellRendererComponent = super
-									.getTableCellRendererComponent(table,
-											value, isSelected, hasFocus, row,
-											column);
-							if (tableCellRendererComponent instanceof JLabel) {
-								JLabel label = (JLabel) tableCellRendererComponent;
-								Map<TextAttribute, Integer> fontAttributes = new HashMap<TextAttribute, Integer>();
-								fontAttributes.put(TextAttribute.UNDERLINE,
-										TextAttribute.UNDERLINE_ON);
-								label.setFont(label.getFont().deriveFont(
-										fontAttributes));
-								label.setForeground(Color.blue.darker());
-							}
-							return tableCellRendererComponent;
-						}
-					});
+							.setCellRenderer(new DefaultTableCellRenderer() {
+								@Override
+								public Component getTableCellRendererComponent(
+										JTable table, Object value,
+										boolean isSelected, boolean hasFocus,
+										int row, int column) {
+									Component tableCellRendererComponent = super
+											.getTableCellRendererComponent(
+													table, value, isSelected,
+													hasFocus, row, column);
+									if (tableCellRendererComponent instanceof JLabel) {
+										JLabel label = (JLabel) tableCellRendererComponent;
+										Map<TextAttribute, Integer> fontAttributes = new HashMap<TextAttribute, Integer>();
+										fontAttributes.put(
+												TextAttribute.UNDERLINE,
+												TextAttribute.UNDERLINE_ON);
+										label.setFont(label.getFont()
+												.deriveFont(fontAttributes));
+										label.setForeground(Color.blue.darker());
+									}
+									return tableCellRendererComponent;
+								}
+							});
 					btnFetch.setEnabled(true);
 				}
 			});
@@ -393,6 +428,10 @@ public class GW2TraderFrame extends JFrame {
 				reply = "    " + reply;
 			}
 			return reply;
+		}
+
+		public List<Item> getItems() {
+			return items;
 		}
 	}
 
