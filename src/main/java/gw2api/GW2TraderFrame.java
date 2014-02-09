@@ -43,6 +43,8 @@ import javax.swing.table.TableModel;
 import org.json.simple.JSONObject;
 
 import au.com.bytecode.opencsv.CSVParser;
+import javax.swing.JFormattedTextField;
+import java.awt.Font;
 
 public class GW2TraderFrame extends JFrame {
 
@@ -53,6 +55,8 @@ public class GW2TraderFrame extends JFrame {
 	private final JButton btnGetTranslations;
 	private final JLabel lblStatus;
 	private final JComboBox<String> cmbLanguages;
+	private JLabel lblMinMargin;
+	private JFormattedTextField txtMinMargin;
 
 	/**
 	 * Launch the application.
@@ -102,6 +106,7 @@ public class GW2TraderFrame extends JFrame {
 
 		tblData = new JTable();
 		tblData.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		tblData.setFont(new Font("Consolas", Font.BOLD, 12));
 		tblData.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -130,9 +135,9 @@ public class GW2TraderFrame extends JFrame {
 		contentPane.add(pnlSettings, BorderLayout.EAST);
 		GridBagLayout gbl_pnlSettings = new GridBagLayout();
 		gbl_pnlSettings.columnWidths = new int[] { 0, 0 };
-		gbl_pnlSettings.rowHeights = new int[] { 0, 0, 0, 0, 0 };
+		gbl_pnlSettings.rowHeights = new int[] { 0, 0, 0, 0, 0, 0, 0 };
 		gbl_pnlSettings.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-		gbl_pnlSettings.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0,
+		gbl_pnlSettings.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 				Double.MIN_VALUE };
 		pnlSettings.setLayout(gbl_pnlSettings);
 
@@ -167,7 +172,7 @@ public class GW2TraderFrame extends JFrame {
 		JLabel lblLbllanguages = new JLabel("Languages");
 		GridBagConstraints gbc_lblLbllanguages = new GridBagConstraints();
 		gbc_lblLbllanguages.anchor = GridBagConstraints.WEST;
-		gbc_lblLbllanguages.insets = new Insets(3, 6, 3, 3);
+		gbc_lblLbllanguages.insets = new Insets(3, 6, 5, 3);
 		gbc_lblLbllanguages.gridx = 0;
 		gbc_lblLbllanguages.gridy = 2;
 		pnlSettings.add(lblLbllanguages, gbc_lblLbllanguages);
@@ -176,11 +181,30 @@ public class GW2TraderFrame extends JFrame {
 		cmbLanguages.setModel(new DefaultComboBoxModel<String>(new String[] {
 				"de", "fr" }));
 		GridBagConstraints gbc_cmbLanguages = new GridBagConstraints();
-		gbc_cmbLanguages.insets = new Insets(3, 3, 3, 3);
+		gbc_cmbLanguages.insets = new Insets(3, 3, 5, 3);
 		gbc_cmbLanguages.fill = GridBagConstraints.HORIZONTAL;
 		gbc_cmbLanguages.gridx = 0;
 		gbc_cmbLanguages.gridy = 3;
 		pnlSettings.add(cmbLanguages, gbc_cmbLanguages);
+		
+		lblMinMargin = new JLabel("Min. Margin (C)");
+		GridBagConstraints gbc_lblMinMargin = new GridBagConstraints();
+		gbc_lblMinMargin.insets = new Insets(3, 3, 5, 0);
+		gbc_lblMinMargin.anchor = GridBagConstraints.WEST;
+		gbc_lblMinMargin.gridx = 0;
+		gbc_lblMinMargin.gridy = 4;
+		pnlSettings.add(lblMinMargin, gbc_lblMinMargin);
+		
+		txtMinMargin = new JFormattedTextField();
+		txtMinMargin.setValue(10);
+
+		GridBagConstraints gbc_txtMinMargin = new GridBagConstraints();
+		gbc_txtMinMargin.insets = new Insets(3, 3, 3, 3);
+		gbc_txtMinMargin.anchor = GridBagConstraints.WEST;
+		gbc_txtMinMargin.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtMinMargin.gridx = 0;
+		gbc_txtMinMargin.gridy = 5;
+		pnlSettings.add(txtMinMargin, gbc_txtMinMargin);
 
 		JPanel pnlStatus = new JPanel();
 		contentPane.add(pnlStatus, BorderLayout.SOUTH);
@@ -212,7 +236,7 @@ public class GW2TraderFrame extends JFrame {
 		}
 	}
 
-	private List<Item> retrieveItems(int minOffers, int minSales, int minMargin) {
+	private List<Item> retrieveItems(int minDemand, int minSupply, int minMargin) {
 		List<Item> items = new ArrayList<>();
 		CSVParser parser = new CSVParser();
 		int fetched = 0;
@@ -232,8 +256,8 @@ public class GW2TraderFrame extends JFrame {
 							Integer.parseInt(strings[9]),
 							Integer.parseInt(strings[10]),
 							Integer.parseInt(strings[11]));
-					if (item.getOfferAvailability() > minOffers
-							&& item.getSaleAvailability() > minSales
+					if (item.getOfferAvailability() > minDemand
+							&& item.getSaleAvailability() > minSupply
 							&& item.getMargin() > minMargin) {
 						items.add(item);
 						used++;
@@ -268,7 +292,7 @@ public class GW2TraderFrame extends JFrame {
 		public void run() {
 			TableModel model = tblData.getModel();
 			if (model != null && model instanceof ItemModel) {
-				Gw2Api gw2Api = new Gw2Api();
+				Gw2Api gw2Api = new RestEasyGw2ApiImpl();
 
 				List<Item> items = ((ItemModel) model).getItems();
 				for (Item item : items) {
@@ -286,7 +310,7 @@ public class GW2TraderFrame extends JFrame {
 	private class ItemFetcher extends Thread {
 		@Override
 		public void run() {
-			List<Item> items = retrieveItems(10000, 10000, 1);
+			List<Item> items = retrieveItems(10000, 10000, ((Number)txtMinMargin.getValue()).intValue());
 			final TableModel model = new ItemModel(items);
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
